@@ -83,16 +83,26 @@ checkInvoke(t, stub, [][]byte{[]byte("createPO"), []byte("{\"POID\": \"12345\"}"
 //invoking updateStatus
 checkInvoke(t, stub, [][]byte{[]byte("updateStatus"), []byte("{\"POID\": \"1234\",\"status\": \"active\"}")})
 checkInvoke(t, stub, [][]byte{[]byte("updateStatus"), []byte("{\"POID\": \"12345\",\"status\": \"active\"}")})
+//invoking updateQuantity
+checkInvoke(t, stub, [][]byte{[]byte("updateQuantity"), []byte("{\"POID\": \"1234\",\"quantity\": \"10\"}")})
+checkInvoke(t, stub, [][]byte{[]byte("updateQuantity"), []byte("{\"POID\": \"12345\",\"quantity\": \"20\"}")})
+//invoking updateproductName
+checkInvoke(t, stub, [][]byte{[]byte("updateproductName"), []byte("{\"POID\": \"1234\",\"productName\": \"Product_A\"}")})
+checkInvoke(t, stub, [][]byte{[]byte("updateproductName"), []byte("{\"POID\": \"12345\",\"productName\": \"Product_B\"}")})
+//invoking customer
+checkInvoke(t, stub, [][]byte{[]byte("updateCustomer"), []byte("{\"POID\": \"12345\",\"customer\": \"Jyoti\"}")})
+
 //invoking deletePO
 checkInvoke(t, stub, [][]byte{[]byte("deletePO"), []byte("{\"POID\": \"1234\"}")})
 
-str := "{\"BookingConfirmation\":\"FFO\"}"
+str := "{\"POID\":\"12345\"}"
+
+
 
 	var valueMap map[string]interface{}
 	json.Unmarshal([]byte(str), &valueMap)
 
-	checkQuery(t, stub, valueMap, [][]byte{[]byte("getPODetails"), []byte("{\"POID\": \"12345\"}")})
-
+	checkQuery(t, stub, valueMap, [][]byte{[]byte("getPODetails"), []byte("{\"POID\": \"12345\",\"customer\": \"Jyoti\"}")})
 }
 
 
