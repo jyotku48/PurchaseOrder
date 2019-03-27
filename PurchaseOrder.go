@@ -177,6 +177,50 @@ func (t *PurchaseOrder) updateStatus(stub shim.ChaincodeStubInterface, args []st
 	fmt.Println("updateStatus purchase order")
 	return shim.Success([]byte("SUCCESS"))
 }
+//update the quantity of the PO
+func (t *PurchaseOrder) updateQuantity(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	//checking the number of argument
+	if len(args) < 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+	}
+
+	recBytes := args[0]
+
+	var POQuantityRecordMap map[string]interface{}
+
+	err := json.Unmarshal([]byte(recBytes), &POQuantityRecordMap)
+	if err != nil {
+		return shim.Error("Failed to unmarshal recBytes")
+	}
+
+	//==== Check if PO already exists ====
+	fetchedPODetails, err := stub.GetState("POID:" + getSafeString(POQuantityRecordMap["POID"]))
+	if err != nil {
+		return shim.Error("Failed to get PO details: " + err.Error())
+	} else if fetchedPODetails == nil {
+		fmt.Println("This PO does not exists:" + getSafeString(POQuantityRecordMap["POID"]))
+		return shim.Error("This PO does not exists:" + getSafeString(POQuantityRecordMap["POID"]))
+	}
+
+	var POQuantityMap map[string]interface{}
+	err = json.Unmarshal(fetchedPODetails, &POQuantityMap)
+	if err != nil {
+		return shim.Error("Failed to unmarshal item")
+	}
+	//get status from the arguments
+	POQuantityMap["quantity"] = getSafeString(POQuantityRecordMap["quantity"])
+
+	outputMapBytes, _ := json.Marshal(POQuantityMap)
+
+	//Store the records
+	stub.PutState("POID:"+getSafeString(POQuantityMap["POID"]), outputMapBytes)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	fmt.Println("updateQuantity purchase order")
+	return shim.Success([]byte("SUCCESS"))
+}
 //deletes the PO
 func (t *PurchaseOrder) deletePO(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
@@ -227,7 +271,11 @@ func (t *PurchaseOrder) deletePO(stub shim.ChaincodeStubInterface, args []string
     }   else if function == "updateStatus" {
 	// updates status
 	return t.updateStatus(stub, args)
-    }  else if function == "deletePO" {
+    } 
+       else if function == "updateQuantity" {
+	// updates status
+	return t.updateQuantity(stub, args)
+    }else if function == "deletePO" {
 	// deletePO
 	return t.deletePO(stub, args)
     }  
@@ -239,5 +287,4 @@ func main() {
 		fmt.Printf("Error starting PurchaseOrder chaincode: %s", err)
 	}
 }
-
 
