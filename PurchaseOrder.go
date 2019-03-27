@@ -57,7 +57,7 @@ func getSafeString(input interface{}) string {
 			param:
 				1. POID(*unique)
 				2. quantity
-				3. part_Name
+				3. productName
 				4. customer
 				5. vendor
 				6. address
@@ -177,6 +177,94 @@ func (t *PurchaseOrder) updateStatus(stub shim.ChaincodeStubInterface, args []st
 	fmt.Println("updateStatus purchase order")
 	return shim.Success([]byte("SUCCESS"))
 }
+//update the productName of the PO
+func (t *PurchaseOrder) updateproductName(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	//checking the number of argument
+	if len(args) < 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+	}
+
+	recBytes := args[0]
+
+	var PORecordMap map[string]interface{}
+
+	err := json.Unmarshal([]byte(recBytes), &PORecordMap)
+	if err != nil {
+		return shim.Error("Failed to unmarshal recBytes")
+	}
+
+	//==== Check if PO already exists ====
+	fetchedPODetails, err := stub.GetState("POID:" + getSafeString(PORecordMap["POID"]))
+	if err != nil {
+		return shim.Error("Failed to get PO details: " + err.Error())
+	} else if fetchedPODetails == nil {
+		fmt.Println("This PO does not exists:" + getSafeString(PORecordMap["POID"]))
+		return shim.Error("This PO does not exists:" + getSafeString(PORecordMap["POID"]))
+	}
+
+	var POMap map[string]interface{}
+	err = json.Unmarshal(fetchedPODetails, &POMap)
+	if err != nil {
+		return shim.Error("Failed to unmarshal item")
+	}
+	//get status from the arguments
+	POMap["productName"] = getSafeString(PORecordMap["productName"])
+
+	outputMapBytes, _ := json.Marshal(POMap)
+
+	//Store the records
+	stub.PutState("POID:"+getSafeString(POMap["POID"]), outputMapBytes)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	fmt.Println("updateproductName purchase order")
+	return shim.Success([]byte("SUCCESS"))
+}
+//update the customer of the PO
+func (t *PurchaseOrder) updateCustomer(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	//checking the number of argument
+	if len(args) < 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+	}
+
+	recBytes := args[0]
+
+	var PORecordMap map[string]interface{}
+
+	err := json.Unmarshal([]byte(recBytes), &PORecordMap)
+	if err != nil {
+		return shim.Error("Failed to unmarshal recBytes")
+	}
+
+	//==== Check if PO already exists ====
+	fetchedPODetails, err := stub.GetState("POID:" + getSafeString(PORecordMap["POID"]))
+	if err != nil {
+		return shim.Error("Failed to get PO details: " + err.Error())
+	} else if fetchedPODetails == nil {
+		fmt.Println("This PO does not exists:" + getSafeString(PORecordMap["POID"]))
+		return shim.Error("This PO does not exists:" + getSafeString(PORecordMap["POID"]))
+	}
+
+	var POMap map[string]interface{}
+	err = json.Unmarshal(fetchedPODetails, &POMap)
+	if err != nil {
+		return shim.Error("Failed to unmarshal item")
+	}
+	//get status from the arguments
+	POMap["customer"] = getSafeString(PORecordMap["customer"])
+
+	outputMapBytes, _ := json.Marshal(POMap)
+
+	//Store the records
+	stub.PutState("POID:"+getSafeString(POMap["POID"]), outputMapBytes)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	fmt.Println("updatecustomer purchase order")
+	return shim.Success([]byte("SUCCESS"))
+}
 //update the quantity of the PO
 func (t *PurchaseOrder) updateQuantity(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
@@ -187,34 +275,34 @@ func (t *PurchaseOrder) updateQuantity(stub shim.ChaincodeStubInterface, args []
 
 	recBytes := args[0]
 
-	var POQuantityRecordMap map[string]interface{}
+	var PORecordMap map[string]interface{}
 
-	err := json.Unmarshal([]byte(recBytes), &POQuantityRecordMap)
+	err := json.Unmarshal([]byte(recBytes), &PORecordMap)
 	if err != nil {
 		return shim.Error("Failed to unmarshal recBytes")
 	}
 
 	//==== Check if PO already exists ====
-	fetchedPODetails, err := stub.GetState("POID:" + getSafeString(POQuantityRecordMap["POID"]))
+	fetchedPODetails, err := stub.GetState("POID:" + getSafeString(PORecordMap["POID"]))
 	if err != nil {
 		return shim.Error("Failed to get PO details: " + err.Error())
 	} else if fetchedPODetails == nil {
-		fmt.Println("This PO does not exists:" + getSafeString(POQuantityRecordMap["POID"]))
-		return shim.Error("This PO does not exists:" + getSafeString(POQuantityRecordMap["POID"]))
+		fmt.Println("This PO does not exists:" + getSafeString(PORecordMap["POID"]))
+		return shim.Error("This PO does not exists:" + getSafeString(PORecordMap["POID"]))
 	}
 
-	var POQuantityMap map[string]interface{}
-	err = json.Unmarshal(fetchedPODetails, &POQuantityMap)
+	var POMap map[string]interface{}
+	err = json.Unmarshal(fetchedPODetails, &POMap)
 	if err != nil {
 		return shim.Error("Failed to unmarshal item")
 	}
 	//get status from the arguments
-	POQuantityMap["quantity"] = getSafeString(POQuantityRecordMap["quantity"])
+	POMap["quantity"] = getSafeString(PORecordMap["quantity"])
 
-	outputMapBytes, _ := json.Marshal(POQuantityMap)
+	outputMapBytes, _ := json.Marshal(POMap)
 
 	//Store the records
-	stub.PutState("POID:"+getSafeString(POQuantityMap["POID"]), outputMapBytes)
+	stub.PutState("POID:"+getSafeString(POMap["POID"]), outputMapBytes)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
@@ -270,12 +358,17 @@ func (t *PurchaseOrder) deletePO(stub shim.ChaincodeStubInterface, args []string
 		return t.getPODetails(stub, args)
     }   else if function == "updateStatus" {
 	// updates status
-	return t.updateStatus(stub, args)
-    } 
-       else if function == "updateQuantity" {
-	// updates status
-	return t.updateQuantity(stub, args)
-    }else if function == "deletePO" {
+	    return t.updateStatus(stub, args)
+	}   else if function == "updateQuantity" {
+		// updates quantity
+		return t.updateQuantity(stub, args)
+	}   else if function == "updateproductName" {
+		// updates productName
+		return t.updateproductName(stub, args)
+	}   else if function == "updateCustomer" {
+		// updates customer
+		return t.updateCustomer(stub, args)
+	}   else if function == "deletePO" {
 	// deletePO
 	return t.deletePO(stub, args)
     }  
